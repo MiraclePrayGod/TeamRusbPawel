@@ -23,7 +23,6 @@ spring:
               - POST
               - PUT
               - DELETE
-
       discovery:
         locator:
           enable: true
@@ -52,5 +51,10 @@ spring:
           uri: lb://ms-facturacion-service
           predicates:
             - Path=/facturas/**
+
+        - id: dp-licencias
+          uri: lb://dp-licencias
+          predicates:
+            - Path=/licencias/**
 
 
