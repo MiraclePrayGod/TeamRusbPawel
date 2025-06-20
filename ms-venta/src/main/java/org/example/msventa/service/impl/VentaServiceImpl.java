@@ -9,6 +9,7 @@ import org.example.msventa.dato.Producto;
 import org.example.msventa.repository.VentaRepository;
 import org.example.msventa.service.VentaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,16 +39,25 @@ public class VentaServiceImpl implements VentaService {
     }
 
     @Override
-    public Optional<Venta> obtener(Integer id) {
-        Optional<Venta> venta = ventaRepository.findById(id);
-        venta.ifPresent(v -> {
-            Cliente cliente = clienteFeign.obtenerPorId(v.getClienteId()).getBody();
-            v.setCliente(cliente);
-            for (VentaDetalle d : v.getDetalles()) {
-                Producto producto = productoFeign.obtenerPorId(d.getProductoId()).getBody();
-                d.setProducto(producto);
+    public Optional<Venta> obtener(Integer id,Optional<Integer> idCliente) {
+        if (idCliente.isPresent()) {
+            // Buscar todas las ventas de un cliente
+            List<Venta> ventas = ventaRepository.findByClienteId(idCliente.get());
+
+            // Aquí podrías hacer algún procesamiento adicional, si es necesario
+            if (!ventas.isEmpty()) {
+                throw new DataIntegrityViolationException("No hay cliente con id " + idCliente + " con ventas");
             }
-        });
+        }
+            Optional<Venta> venta = ventaRepository.findById(id);
+            venta.ifPresent(v -> {
+                Cliente cliente = clienteFeign.obtenerPorId(v.getClienteId()).getBody();
+                v.setCliente(cliente);
+                for (VentaDetalle d : v.getDetalles()) {
+                    Producto producto = productoFeign.obtenerPorId(d.getProductoId()).getBody();
+                    d.setProducto(producto);
+                }
+            });
         return venta;
     }
 

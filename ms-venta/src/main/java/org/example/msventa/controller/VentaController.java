@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/ventas")
@@ -39,11 +40,36 @@ public class VentaController {
 
     @GetMapping("/{id}")
     @CircuitBreaker(name = "ventaCB", fallbackMethod = "fallbackVenta")
-    public ResponseEntity<Venta> obtener(@PathVariable Integer id) {
-        return ventaService.obtener(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> obtener(
+            @PathVariable Integer id, // Obtener la venta por ID de la venta
+            @RequestParam(required = false) Integer idCliente) { // Parámetro opcional para el idCliente
+        if (idCliente != null) {
+            // Buscar ventas por idCliente
+            List<Venta> ventas = ventaService.obtenerPorCliente(idCliente);
+            if (!ventas.isEmpty()) {
+                return ResponseEntity.ok(ventas);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("No se encontraron ventas para el cliente con ID: " + idCliente);
+            }
+        } else {
+            // Buscar por id de venta
+            Optional<Venta> venta = ventaService.obtener(id);
+            return venta.map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        }
     }
+
+    // Método de fallback
+    public ResponseEntity<?> fallbackVenta(Integer id, Throwable throwable) {
+        // Aquí puedes retornar una respuesta predeterminada en caso de fallo
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body("Servicio no disponible, intente nuevamente más tarde.");
+    }
+
+
+
+
 
     public ResponseEntity<Venta> fallbackVenta(Integer id, Throwable throwable) {
         Venta fallback = new Venta();

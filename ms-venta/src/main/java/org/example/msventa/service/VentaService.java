@@ -7,7 +7,7 @@ import java.util.Optional;
 public interface VentaService {
 
     List<Venta> listar();
-    Optional<Venta> obtener(Integer id);
+    Optional<Venta> obtener(Integer id,Optional<Integer> idCliente);
     Venta registrar(Venta venta);
     void eliminar(Integer id);
     // 🔹 NUEVO
