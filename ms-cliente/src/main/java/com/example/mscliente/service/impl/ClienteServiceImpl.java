@@ -28,7 +28,6 @@ public class ClienteServiceImpl implements ClienteService {
         if (!clienteRepository.existsById(id)) {
             throw new IllegalArgumentException("El cliente con id " + id +" no existe");
         }
-
         return clienteRepository.findById(id);
     }
 
@@ -81,18 +80,19 @@ public class ClienteServiceImpl implements ClienteService {
         return clienteRepository.existsByNumeroDocumento(numeroDocumento);
     }
 
-        @Override
-        public Cliente habilitarCliente(Long id,String estado) {
 
-            Optional<Cliente> cliente = clienteRepository.findById(id);
-            if (cliente.isPresent()){
-                Cliente cliente1 = cliente.get();
-                cliente1.setEstado("Habilitado");
-                clienteRepository.save(cliente1);
-                return cliente1;
+    @Override
+    public Cliente habilitarCliente(Long id,String estado) {
 
-            }else{
-                throw new IllegalArgumentException("El cliente con id " + id + " no ha sido encontrado");
-            }
+        Optional<Cliente> cliente = clienteRepository.findById(id);
+        if (cliente.isPresent()){
+            Cliente cliente1 = cliente.get();
+            cliente1.setEstado("Habilitado");
+            clienteRepository.save(cliente1);
+            return cliente1;
+
+        }else{
+            throw new IllegalArgumentException("El cliente con id " + id + " no ha sido encontrado");
         }
+    }
 }
