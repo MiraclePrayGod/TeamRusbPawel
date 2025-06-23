@@ -7,7 +7,7 @@ public class Cliente {
     private String tipoDocumento;
     private String numeroDocumento;
     private String correo;
-    private Boolean estado;
+    private String estado;
 
     public Integer getId() {
         return id;
@@ -57,11 +57,11 @@ public class Cliente {
         this.correo = correo;
     }
 
-    public Boolean getEstado() {
+    public String getEstado() {
         return estado;
     }
 
-    public void setEstado(Boolean estado) {
+    public void setEstado(String estado) {
         this.estado = estado;
     }
 }

@@ -4,6 +4,7 @@
     import com.example.msproducto.repository.ProductoRepository;
     import com.example.msproducto.service.ProductoService;
     import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.dao.DataIntegrityViolationException;
     import org.springframework.stereotype.Service;
 
     import java.time.LocalDateTime;
@@ -64,5 +65,13 @@
         public boolean existePorNombre(String nombre) {
             return productoRepository.existsByNombre(nombre);
         }
+
+//        @Override
+//        public Optional<List<Producto>> obtenerByCliente(Integer id) {
+//            List<Producto> venta = productoRepository.getBy getByClienteId((id));
+//            if (venta.isEmpty() || venta == null) {
+//                throw new DataIntegrityViolationException("No se encontraron ventas con ese el id "+id +" del cliente");
+//            }
+//            return Optional.ofNullable(venta);        }
 
     }

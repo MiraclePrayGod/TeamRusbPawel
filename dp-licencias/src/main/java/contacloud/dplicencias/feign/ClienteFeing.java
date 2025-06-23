@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "ms-cliente", path = "/clientes")
+@FeignClient(name = "ms-cliente-service", path = "/clientes")
 public interface ClienteFeing {
         @GetMapping("/{id}")
         ResponseEntity<ClienteDto> obtenerPorId(@PathVariable Long id);

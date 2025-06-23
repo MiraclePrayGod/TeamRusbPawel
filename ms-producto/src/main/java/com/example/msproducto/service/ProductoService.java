@@ -20,4 +20,7 @@ public interface ProductoService {
 
     boolean existePorNombre(String nombre);
     // Validación de DNI único
+
+//    Optional<List<Producto>> obtenerByCliente(Integer id);
+
 }

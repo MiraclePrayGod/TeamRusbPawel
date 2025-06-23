@@ -1,25 +1,25 @@
 package org.example.msventa.service.impl;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.example.msventa.dato.Cliente;
+import org.example.msventa.dato.Producto;
 import org.example.msventa.entity.Venta;
 import org.example.msventa.entity.VentaDetalle;
 import org.example.msventa.feign.ClienteFeign;
 import org.example.msventa.feign.ProductoFeign;
-import org.example.msventa.dato.Cliente;
-import org.example.msventa.dato.Producto;
 import org.example.msventa.repository.VentaRepository;
 import org.example.msventa.service.VentaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class VentaServiceImpl implements VentaService {
-
     @Autowired private VentaRepository ventaRepository;
     @Autowired private ClienteFeign clienteFeign;
     @Autowired private ProductoFeign productoFeign;
@@ -39,25 +39,16 @@ public class VentaServiceImpl implements VentaService {
     }
 
     @Override
-    public Optional<Venta> obtener(Integer id,Optional<Integer> idCliente) {
-        if (idCliente.isPresent()) {
-            // Buscar todas las ventas de un cliente
-            List<Venta> ventas = ventaRepository.findByClienteId(idCliente.get());
-
-            // Aquí podrías hacer algún procesamiento adicional, si es necesario
-            if (!ventas.isEmpty()) {
-                throw new DataIntegrityViolationException("No hay cliente con id " + idCliente + " con ventas");
+    public Optional<Venta> obtener(Integer id) {
+        Optional<Venta> venta = ventaRepository.findById(id);
+        venta.ifPresent(v -> {
+            Cliente cliente = clienteFeign.obtenerPorId(v.getClienteId()).getBody();
+            v.setCliente(cliente);
+            for (VentaDetalle d : v.getDetalles()) {
+                Producto producto = productoFeign.obtenerPorId(d.getProductoId()).getBody();
+                d.setProducto(producto);
             }
-        }
-            Optional<Venta> venta = ventaRepository.findById(id);
-            venta.ifPresent(v -> {
-                Cliente cliente = clienteFeign.obtenerPorId(v.getClienteId()).getBody();
-                v.setCliente(cliente);
-                for (VentaDetalle d : v.getDetalles()) {
-                    Producto producto = productoFeign.obtenerPorId(d.getProductoId()).getBody();
-                    d.setProducto(producto);
-                }
-            });
+        });
         return venta;
     }
 
@@ -70,6 +61,22 @@ public class VentaServiceImpl implements VentaService {
     public List<Venta> pagadas(Integer clienteId) {
         return ventaRepository.findByClienteIdAndEstado(clienteId, "PAGADA");
     }
+
+
+    @Override
+    public Optional<Venta> obtenerByCliente(Integer id) {
+        Optional<Venta> venta = ventaRepository.getByClienteId(id);
+        if (venta.isEmpty()) {
+            throw new DataIntegrityViolationException("No se encontraron ventas con ese el id "+id +" del cliente");
+        }
+        for (VentaDetalle detalle : venta.get().getDetalles()) {
+            Producto productoDto = productoFeign.obtenerPorId(detalle.getProductoId()).getBody();
+            detalle.setProducto(productoDto);
+        }
+        return Optional.ofNullable(venta.get());
+    }
+
+
 
     @Override
     public void marcarPagada(Integer id) {

@@ -8,8 +8,10 @@ import contacloud.dplicencias.feign.ProductoFeing;
 import contacloud.dplicencias.feign.VentaFeing;
 import contacloud.dplicencias.repository.LicenciaRepository;
 import contacloud.dplicencias.service.LicenciaService;
+import contacloud.dplicencias.util.StringUtils;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -19,6 +21,7 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.security.SecureRandom;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -91,34 +94,69 @@ public class LicenciaSeriveImpl implements LicenciaService {
 
     // Método guardar sin CircuitBreaker
     @Override
-    public Licencia guardar(Licencia licenciaDato) {
-//       ClienteDto cliente = clienteFeing.obtenerPorId(licenciaDato.getClienteId()).getBody();
-//        if (cliente == null) {
-//            throw new RuntimeException("Cliente no encontrado con ID: " + licenciaDato.getClienteId());
-//        }
-//        Licencia licencia = new Licencia();
-//        licencia.setClienteId(cliente.getId());
-//        licencia.setTipoLicencia(licenciaDato.getTipoLicencia());
-//        licencia.setFechaExpiracion(licenciaDato.getFechaExpiracion());
-//        licencia.setEstado(licenciaDato.getEstado());
-//
-//        List<LicenciaDetalle> detalles = new ArrayList<>();
-//
-//        for (LicenciaDetalleCreateDto detalleDto : licenciaDato.getDetalles()) {
-//            VentaDto ventaDto = ventaFeing.obtenerPorId(detalleDto.getVentaId()).getBody();
-//            if (ventaDto == null || !"PAGADO".equalsIgnoreCase(ventaDto.getEstado())) {
-//                throw new RuntimeException("Venta no válida o no completada, ID: "
-//                        + detalleDto.getVentaId());
-//            }
-//            LicenciaDetalle detalle = new LicenciaDetalle();
-//            detalle.setVentaId(ventaDto.getId());
-//            detalle.setCodigoLicencia(generarCodigoLicencia(cliente.getNombre()));
-//            detalle.setContrasena(generarContrasena(cliente.getNombre()));
-//
-//            detalles.add(detalle);
-//        }
-//        licencia.setDetalles(detalles);
-        return licenciaRepository.save(licenciaDato);
+    public Licencia guardar(Licencia licencia) {
+        ClienteDto cliente = null;
+        try {
+            // Intentamos obtener el cliente
+            cliente = clienteFeing.obtenerPorId(licencia.getClienteId()).getBody();
+
+            // Si el cliente es nulo, lanzamos una excepción personalizada
+            if (cliente == null) {
+                throw new RuntimeException("Cliente no encontrado con ID: " + licencia.getClienteId());
+            }
+        } catch (RuntimeException e) {
+            // Capturamos y mostramos el tipo de error en caso de excepciones específicas
+            System.out.println("Error tipo: " + e.getClass().getSimpleName());
+            System.out.println("Mensaje de error: " + e.getMessage());
+            throw e;  // Vuelve a lanzar la excepción para manejarla más arriba si es necesario
+        } catch (Exception e) {
+            // Captura cualquier otra excepción que pueda ocurrir
+            System.out.println("Error general tipo: " + e.getClass().getSimpleName());
+            System.out.println("Mensaje de error: " + e.getMessage());
+            e.printStackTrace();  // Imprime el stack trace para más detalles
+            throw new RuntimeException("Error inesperado: " + e.getMessage(), e);  // Lanza una excepción general
+        }
+
+        licencia.setClienteId(licencia.getClienteId());
+        licencia.setTipoLicencia(licencia.getTipoLicencia());
+        licencia.setFechaActivacion(LocalDate.now());
+        licencia.setFechaExpiracion(licencia.getFechaExpiracion());
+        licencia.setEstado(true);
+        licencia.setClienteDto(cliente);
+
+        VentaDto ventaDto = null;
+        try {
+            ventaDto = ventaFeing.obtenerByCliente(cliente.getId().intValue()).getBody();
+            // Aquí va el resto del código si no hubo error
+        } catch (Exception e) {
+            // Captura cualquier excepción y muestra el tipo de error y el mensaje
+            System.out.println("Error tipo: " + e.getClass().getSimpleName());
+            System.out.println("Mensaje de error: " + e.getMessage());
+            // Si deseas capturar más detalles de la excepción, puedes imprimir el stack trace
+            e.printStackTrace();
+        }
+
+        List<LicenciaDetalle> detallesLicencia = new ArrayList<>();
+
+        for (VentaDetalleDto detalleDto : ventaDto.getDetalles()) {
+            ProductoDto productoDto = productoFeing.obtenerProductoPorId(detalleDto.getProductoId()).getBody();
+            if (productoDto == null) {
+                throw new RuntimeException("Producto no encontrado con ID: " + detalleDto.getProductoId());
+            }
+
+            LicenciaDetalle detalle = new LicenciaDetalle();
+
+            detalle.setVentaId(ventaDto.getId());
+            detalle.setProductoId(detalleDto.getId());
+            detalle.setCodigoLicencia(StringUtils.generarCodigoLicencia(cliente.getNombres()));
+            detalle.setContrasena(StringUtils.generarContrasena(cliente.getNombres()));
+            detalle.setVentaDto(ventaDto);
+            detalle.setProductoDto(productoDto);
+            // Agregar el detalle a la lista
+            detallesLicencia.add(detalle);
+        }
+        licencia.setDetalles(detallesLicencia);
+        return licenciaRepository.save(licencia);
     }
 
     @Override
@@ -135,6 +173,55 @@ public class LicenciaSeriveImpl implements LicenciaService {
 
     @Override
     public String sendEmail(Integer clienteId) {
-        return "";
+        ClienteDto clienteDto = clienteFeing.obtenerPorId(clienteId.longValue()).getBody();
+        String email = clienteDto.getCorreo();
+
+        if (email == null || email.isEmpty()) {
+            throw new IllegalArgumentException("El cliente no tiene un correo electrónico válido.");
+        }
+
+        try {
+            String codigo = "NO DISPONIBLE";
+            String contrasena = "NO DISPONIBLE";
+            String nombreCliente = clienteDto.getNombres();
+
+            List<Licencia> licencias = licenciaRepository.findByClienteId(clienteId);
+
+            if (!licencias.isEmpty()) {
+                for (Licencia licencia : licencias) {
+                    if (licencia.getDetalles() != null && !licencia.getDetalles().isEmpty()) {
+                        LicenciaDetalle licenciaDetalle = licencia.getDetalles().get(0);
+                        codigo = licenciaDetalle.getCodigoLicencia();
+                        contrasena = licenciaDetalle.getContrasena();
+                    } else {
+                        throw new RuntimeException("Licencia no tiene detalles asociados.");
+                    }
+
+                    Context context = new Context();
+                    context.setVariable("codigo", codigo);
+                    context.setVariable("contrasena", contrasena);
+                    context.setVariable("cliente", nombreCliente);
+
+                    String htmlContent = templateEngine.process("email/licencia-activa", context);
+
+                    MimeMessage mimeMessage = mailSender.createMimeMessage();
+                    MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+                    helper.setFrom("reginaldomayhuire@upeu.edu.pe");
+                    helper.setTo(email);
+                    helper.setSubject("LICENCIA DE SOFTWARE");
+                    helper.setText(htmlContent, true);
+
+                    mailSender.send(mimeMessage);
+                }
+
+                return UUID.randomUUID().toString();
+            } else {
+                throw new RuntimeException("No se encontraron licencias para el cliente con ID: " + clienteId);
+            }
+
+        } catch (MessagingException e) {
+            throw new RuntimeException("Error al enviar el correo: " + e.getMessage());
+        }
     }
 }

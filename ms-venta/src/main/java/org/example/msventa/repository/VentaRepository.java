@@ -14,4 +14,6 @@ public interface VentaRepository extends JpaRepository<Venta, Integer> {
     List<Venta> findByClienteIdAndEstado(Integer clienteId, String estado);
     // 🔹 buscar venta SIN_PAGAR por id
     Optional<Venta> findByIdAndEstado(Integer id, String estado);
+
+    Optional<Venta> getByClienteId(Integer clienteId);
 }

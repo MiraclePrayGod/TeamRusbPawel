@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
+@Component
 public class VentaSeeder implements CommandLineRunner {
     private final VentaRepository ventaRepository;
 
@@ -18,9 +19,8 @@ public class VentaSeeder implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) {
+    public void run(String... args) throws Exception {
         if (ventaRepository.count() == 0) {
-
             // ========================
             // Venta hecha por TRABAJADOR
             // ========================
@@ -43,7 +43,13 @@ public class VentaSeeder implements CommandLineRunner {
             venta1.setTotal(1300.0);
             venta1.setOrigen("TRABAJADOR");
             venta1.setEstado("SIN_PAGAR");
+
+            // Asocia los detalles con la venta
             venta1.setDetalles(Arrays.asList(d1, d2));
+
+            // Asocia cada detalle con la venta (esto es necesario para el campo 'venta_id')
+            d1.setVenta(venta1);
+            d2.setVenta(venta1);
 
             // ========================
             // Venta hecha por CLIENTE (desde frontend)
@@ -61,7 +67,10 @@ public class VentaSeeder implements CommandLineRunner {
             venta2.setTotal(750.0);
             venta2.setOrigen("CLIENTE");
             venta2.setEstado("SIN_PAGAR");
+
+            // Asocia el detalle con la venta
             venta2.setDetalles(List.of(d3));
+            d3.setVenta(venta2);
 
             // Guardamos ambas ventas
             ventaRepository.save(venta1);

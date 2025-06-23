@@ -4,6 +4,7 @@ package contacloud.dplicencias.controller;
 import contacloud.dplicencias.entity.Licencia;
 import contacloud.dplicencias.service.LicenciaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,13 +33,13 @@ public class LicenciaController {
 
     // Endpoint para crear una nueva licencia
     @PostMapping
-    public ResponseEntity<Licencia> crearLicencia(@RequestBody Licencia licenciaDto) {
-        return ResponseEntity.status(201).body(licenciaDto);  // Retorna la licencia creada con estado 201
+    public ResponseEntity<Licencia> guardar(@RequestBody Licencia licencia) {
+        return new ResponseEntity<>(licenciaService.guardar(licencia),HttpStatus.CREATED);
     }
 
     // Endpoint para actualizar una licencia existente
     @PutMapping("/{id}")
-    public ResponseEntity<Licencia> actualizarLicencia(@PathVariable Integer id, @RequestBody Licencia licencia) {
+    public ResponseEntity<Licencia> actualizar(@PathVariable Integer id, @RequestBody Licencia licencia) {
         // Actualizar licencia
         return ResponseEntity.ok(licencia);  // Retorna la licencia actualizada
     }

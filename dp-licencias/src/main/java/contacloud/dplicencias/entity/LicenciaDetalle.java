@@ -22,6 +22,7 @@ public class LicenciaDetalle {
     @Transient
     private ProductoDto productoDto;
 
+
     public LicenciaDetalle() {
     }
 
