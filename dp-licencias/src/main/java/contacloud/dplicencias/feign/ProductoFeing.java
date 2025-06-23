@@ -15,11 +15,12 @@ public interface ProductoFeing {
 //    @GetMapping("/{id}")
 //    ResponseEntity<ProductoDto> obtenerPorId(@PathVariable Long id);
     @GetMapping("/{id}")
-    @CircuitBreaker(name = "prodcutoId" , fallbackMethod = "=fallBackProductoById")
-    ResponseEntity<ProductoDto> obtenerProductoPorId(@PathVariable Integer id);
-    default ResponseEntity<ProductoDto> fallBackProductoById( Long id, Throwable e){
+    @CircuitBreaker(name = "productoId" , fallbackMethod = "fallBackProductoById")
+    ResponseEntity<ProductoDto> obtenerProductoPorId(@PathVariable Long id);
+
+   default ResponseEntity<ProductoDto> fallBackProductoById( Long id, Throwable e){
         ProductoDto productoDto = new ProductoDto();
-            productoDto.setId(-1);
+            productoDto.setId(-1L);
             productoDto.setNombre("Producto sin nombre");
             return ResponseEntity.ok(productoDto);
     }

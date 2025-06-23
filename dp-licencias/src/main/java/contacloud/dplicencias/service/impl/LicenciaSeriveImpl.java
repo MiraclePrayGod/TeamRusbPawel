@@ -147,7 +147,7 @@ public class LicenciaSeriveImpl implements LicenciaService {
             LicenciaDetalle detalle = new LicenciaDetalle();
 
             detalle.setVentaId(ventaDto.getId());
-            detalle.setProductoId(detalleDto.getId());
+            detalle.setProductoId(detalleDto.getId().longValue());
             detalle.setCodigoLicencia(StringUtils.generarCodigoLicencia(cliente.getNombres()));
             detalle.setContrasena(StringUtils.generarContrasena(cliente.getNombres()));
             detalle.setVentaDto(ventaDto);

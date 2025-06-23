@@ -43,7 +43,7 @@ eureka:
     #hostname: localhost
     resilience4j.circuitbreaker:
       instances:
-        prodcutoId:
+        productoId:
           registerHealthIndicator: true
           slidingWindowSize: 10
           permittedNumberOfCallsInHalfOpenState: 3

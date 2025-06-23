@@ -4,9 +4,9 @@ import jakarta.persistence.Transient;
 
 public class VentaDetalleDto {
     private Integer id;
-    private Integer productoId;
+    private Long productoId;
 
-    public VentaDetalleDto(Integer id, Integer productoId) {
+    public VentaDetalleDto(Integer id, Long productoId) {
         this.id = id;
         this.productoId = productoId;
     }
@@ -23,11 +23,11 @@ public class VentaDetalleDto {
         this.id = id;
     }
 
-    public Integer getProductoId() {
+    public Long getProductoId() {
         return productoId;
     }
 
-    public void setProductoId(Integer productoId) {
+    public void setProductoId(Long productoId) {
         this.productoId = productoId;
     }
 
