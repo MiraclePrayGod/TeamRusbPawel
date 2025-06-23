@@ -174,7 +174,7 @@ public class LicenciaSeriveImpl implements LicenciaService {
     @Override
     public String sendEmail(Integer clienteId) {
         ClienteDto clienteDto = clienteFeing.obtenerPorId(clienteId.longValue()).getBody();
-        String email = clienteDto.getCorreo();
+      String email = clienteDto.getCorreo();
 
         if (email == null || email.isEmpty()) {
             throw new IllegalArgumentException("El cliente no tiene un correo electrónico válido.");

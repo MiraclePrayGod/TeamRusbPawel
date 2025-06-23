@@ -82,12 +82,12 @@ public class ClienteServiceImpl implements ClienteService {
 
 
     @Override
-    public Cliente habilitarCliente(Long id,String estado) {
+    public Cliente habilitarCliente(Long id) {
 
         Optional<Cliente> cliente = clienteRepository.findById(id);
         if (cliente.isPresent()){
             Cliente cliente1 = cliente.get();
-            cliente1.setEstado("Habilitado");
+            cliente1.setEstado("HABILITADO");
             clienteRepository.save(cliente1);
             return cliente1;
 

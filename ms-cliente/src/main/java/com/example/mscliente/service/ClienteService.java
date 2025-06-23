@@ -11,6 +11,6 @@ public interface ClienteService {
     Cliente actualizar(Long id, Cliente cliente);
     void eliminar(Long id);
     boolean existePorNumeroDocumento(String numeroDocumento);
-    Cliente habilitarCliente(Long id,String estado);
+    Cliente habilitarCliente(Long id);
 
 }

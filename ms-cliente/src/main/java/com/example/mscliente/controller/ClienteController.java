@@ -44,4 +44,11 @@ public class ClienteController {
         clienteService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/habilitar/{clienteId}")
+    public ResponseEntity<Void> habilitarCliente(@PathVariable Long clienteId) {
+        // Aquí actualizas el estado del cliente a "habilitado"
+        clienteService.habilitarCliente(clienteId);
+        return ResponseEntity.ok().build();
+    }
 }

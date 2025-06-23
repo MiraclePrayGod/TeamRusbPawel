@@ -1,6 +1,5 @@
 package org.example.msventa.service.impl;
 
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.example.msventa.dato.Cliente;
 import org.example.msventa.dato.Producto;
 import org.example.msventa.entity.Venta;
@@ -17,12 +16,17 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 @Service
 public class VentaServiceImpl implements VentaService {
     @Autowired private VentaRepository ventaRepository;
     @Autowired private ClienteFeign clienteFeign;
     @Autowired private ProductoFeign productoFeign;
+
+    private static final Logger log = LoggerFactory.getLogger(VentaServiceImpl.class);
 
     @Override
     public List<Venta> listar() {
@@ -84,6 +88,14 @@ public class VentaServiceImpl implements VentaService {
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada o ya pagada"));
         v.setEstado("PAGADA");
         ventaRepository.save(v);
+
+        try {
+            clienteFeign.actualizarEstado(v.getClienteId().longValue());
+        } catch (Exception e) {
+            // Manejo de excepciones (registro, alertas, etc.)
+            log.error("Error al actualizar el estado del cliente: ", e);
+        }
+
     }
 
     @Override
