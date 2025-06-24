@@ -22,6 +22,7 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -85,7 +86,9 @@ public class LicenciaSeriveImpl implements LicenciaService {
             licencia.setClienteDto(clienteDto);
             for (LicenciaDetalle detalle: licencia.getDetalles()) {
                 VentaDto ventaDto = ventaFeing.obtenerPorId(detalle.getVentaId()).getBody();
+                ProductoDto productoDto =  productoFeing.obtenerProductoPorId(detalle.getProductoId()).getBody();
                 detalle.setVentaDto(ventaDto);
+                detalle.setProductoDto(productoDto);
             }
         });
 
@@ -95,11 +98,11 @@ public class LicenciaSeriveImpl implements LicenciaService {
     // Método guardar sin CircuitBreaker
     @Override
     public Licencia guardar(Licencia licencia) {
+
         ClienteDto cliente = null;
         try {
             // Intentamos obtener el cliente
             cliente = clienteFeing.obtenerPorId(licencia.getClienteId()).getBody();
-
             // Si el cliente es nulo, lanzamos una excepción personalizada
             if (cliente == null) {
                 throw new RuntimeException("Cliente no encontrado con ID: " + licencia.getClienteId());
@@ -124,39 +127,45 @@ public class LicenciaSeriveImpl implements LicenciaService {
         licencia.setEstado(true);
         licencia.setClienteDto(cliente);
 
-        VentaDto ventaDto = null;
+        List<VentaDto> ventaDto = null;
         try {
-            ventaDto = ventaFeing.obtenerByCliente(cliente.getId().intValue()).getBody();
-            // Aquí va el resto del código si no hubo error
+            ventaDto = ventaFeing.pagadas(cliente.getId().intValue()).getBody();
+            if (ventaDto == null || ventaDto.isEmpty()) {
+                throw new RuntimeException("No se encontraron ventas para el cliente con ID: " + cliente.getId());
+            }
         } catch (Exception e) {
-            // Captura cualquier excepción y muestra el tipo de error y el mensaje
             System.out.println("Error tipo: " + e.getClass().getSimpleName());
             System.out.println("Mensaje de error: " + e.getMessage());
-            // Si deseas capturar más detalles de la excepción, puedes imprimir el stack trace
             e.printStackTrace();
         }
 
         List<LicenciaDetalle> detallesLicencia = new ArrayList<>();
+        for (VentaDto ventaDto1: ventaDto) {
+            for ( VentaDetalleDto detalleDto : ventaDto1.getDetalles()) {
+                ProductoDto productoDto = productoFeing.obtenerProductoPorId(detalleDto.getProductoId()).getBody();
+                if (productoDto == null) {
+                    throw new RuntimeException("Producto no encontrado con ID: " + detalleDto.getProductoId());
+                }
 
-        for (VentaDetalleDto detalleDto : ventaDto.getDetalles()) {
-            ProductoDto productoDto = productoFeing.obtenerProductoPorId(detalleDto.getProductoId()).getBody();
-            if (productoDto == null) {
-                throw new RuntimeException("Producto no encontrado con ID: " + detalleDto.getProductoId());
+                LicenciaDetalle detalle = new LicenciaDetalle();
+
+                detalle.setVentaId(ventaDto1.getId());
+                detalle.setProductoId(detalleDto.getId().longValue());
+                detalle.setCodigoLicencia(StringUtils.generarCodigoLicencia(cliente.getNombres()));
+                detalle.setContrasena(StringUtils.generarContrasena(cliente.getNombres()));
+                detalle.setVentaDto(ventaDto1);
+                detalle.setProductoDto(productoDto);
+                // Agregar el detalle a la lista
+                detallesLicencia.add(detalle);
             }
 
-            LicenciaDetalle detalle = new LicenciaDetalle();
 
-            detalle.setVentaId(ventaDto.getId());
-            detalle.setProductoId(detalleDto.getId().longValue());
-            detalle.setCodigoLicencia(StringUtils.generarCodigoLicencia(cliente.getNombres()));
-            detalle.setContrasena(StringUtils.generarContrasena(cliente.getNombres()));
-            detalle.setVentaDto(ventaDto);
-            detalle.setProductoDto(productoDto);
-            // Agregar el detalle a la lista
-            detallesLicencia.add(detalle);
         }
+
         licencia.setDetalles(detallesLicencia);
-        return licenciaRepository.save(licencia);
+        Licencia nuevaLicencia = licenciaRepository.save(licencia);
+        sendEmail(licencia.getClienteId().intValue());
+        return nuevaLicencia;
     }
 
     @Override
@@ -168,6 +177,23 @@ public class LicenciaSeriveImpl implements LicenciaService {
 
     @Override
     public void eliminar(Integer id) {
+        Licencia licencia = licenciaRepository.getById(id);
+        List<VentaDto> ventaDto = ventaFeing.obtenerByCliente(licencia.getClienteId().intValue()).getBody();
+        if (ventaDto.isEmpty()) {
+            throw new DataIntegrityViolationException("No se encontraron ventas con ese el id " + id + " del cliente");
+        }
+        ClienteDto clienteDto = null;
+        for (VentaDto venta : ventaDto) {
+            clienteDto = clienteFeing.obtenerPorId(licencia.getClienteId().longValue()).getBody();
+
+            for (VentaDetalleDto detalle : venta.getDetalles()) {
+                ProductoDto productoDto = productoFeing.obtenerProductoPorId(detalle.getProductoId()).getBody();
+                detalle.setProductoId(productoDto.getId());
+            }
+        }
+        if (clienteDto.getEstado().equals("HABILITADO")) {
+            clienteDto.setEstado("INHABILITADO");
+        }
         licenciaRepository.deleteById(id);
     }
 
@@ -215,7 +241,7 @@ public class LicenciaSeriveImpl implements LicenciaService {
                     mailSender.send(mimeMessage);
                 }
 
-                return UUID.randomUUID().toString();
+                return "Correo enviado correctamente a "+ email;
             } else {
                 throw new RuntimeException("No se encontraron licencias para el cliente con ID: " + clienteId);
             }
@@ -224,4 +250,49 @@ public class LicenciaSeriveImpl implements LicenciaService {
             throw new RuntimeException("Error al enviar el correo: " + e.getMessage());
         }
     }
+
+    @Override
+    public List<Licencia> buscarIdCLiente(Integer clienteId) {
+        List<Licencia> licencias = licenciaRepository.findByClienteId(clienteId);
+
+        for (Licencia licencia : licencias) {
+            ClienteDto clienteDto = clienteFeing.obtenerPorId(licencia.getClienteId()).getBody();
+            licencia.setClienteDto(clienteDto);
+            for (LicenciaDetalle detalle: licencia.getDetalles()) {
+                VentaDto ventaDto = ventaFeing.obtenerPorId(detalle.getVentaId()).getBody();
+                ProductoDto productoDto = productoFeing.obtenerProductoPorId(detalle.getProductoId()).getBody();
+                if (ventaDto == null ) {
+                    throw new DataIntegrityViolationException("Venta con ese id "+ ventaDto.getId()+" no existe ");
+                }else {
+                    detalle.setVentaDto(ventaDto);
+                }
+                if (productoDto == null){
+                    throw new DataIntegrityViolationException("Producto con ese id "+ productoDto.getId()+" no existe ");
+                }else {
+                    detalle.setProductoDto(productoDto);
+                }
+            }
+        }
+        return licencias;
+
+    }
+
+
+    @Override
+    public Licencia renovarLicencia(Integer id) {
+        Licencia licencia = licenciaRepository.getByClienteId(id.longValue());
+        licencia.setEstado(true);
+        guardar(licencia);
+        return licencia;
+    }
+
+    @Override
+    public Licencia licenciaExpirada(Integer id) {
+        Licencia licencia = licenciaRepository.getById(id);
+        if (licencia.getFechaExpiracion().isEqual(LocalDate.now())) {
+            licencia.setEstado(false);
+        }
+            return licenciaRepository.save(licencia);
+    }
+
 }

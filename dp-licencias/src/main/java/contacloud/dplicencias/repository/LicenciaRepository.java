@@ -9,4 +9,8 @@ import java.util.Optional;
 public interface LicenciaRepository extends JpaRepository<Licencia, Integer> {
 
     List<Licencia> findByClienteId(Integer clienteId);
+
+    Licencia getByEstado(Boolean estado);
+
+    Licencia getByClienteId(Long clienteId);
 }

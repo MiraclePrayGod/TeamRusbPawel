@@ -9,18 +9,20 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.Optional;
+import java.util.List;
 
 @FeignClient(name = "ms-venta-service", path = "/ventas")
 public interface VentaFeing {
         @GetMapping("/{id}")
         ResponseEntity<VentaDto> obtenerPorId(@PathVariable Integer id);
 
+        @GetMapping("/pagadas/{clienteId}")
+        ResponseEntity<List<VentaDto>> pagadas(@PathVariable Integer clienteId);
+
         @GetMapping("/clientes/{id}")
-        ResponseEntity<VentaDto> obtenerByCliente(@PathVariable Integer id);
+        ResponseEntity<List<VentaDto>> obtenerByCliente(@PathVariable Integer id);
 
-
-        @PutMapping("/{id}")
+    @PutMapping("/{id}")
         ResponseEntity<VentaDto> actualizarVenta(@PathVariable Long id, @RequestBody ClienteDto cursoDto);
 
 }

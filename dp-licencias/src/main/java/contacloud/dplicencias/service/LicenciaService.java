@@ -13,6 +13,8 @@ public interface LicenciaService {
     Licencia actualizar(Integer id,Licencia licencia);
     void eliminar(Integer id);
     String sendEmail(Integer clienteId);
-
+    List<Licencia> buscarIdCLiente(Integer ClienteId);
+    Licencia renovarLicencia(Integer id);
+    Licencia licenciaExpirada(Integer id);
 
 }
