@@ -11,7 +11,13 @@ public class ProductoDto {
         this.id = id;
         this.nombre = nombre;
     }
-
+    @Override
+    public String toString() {
+        return "ProductoDto{" +
+                "id=" + id +
+                ", nombre='" + nombre + '\'' +
+                '}';
+    }
     public ProductoDto(String nombre) {
         this.nombre = nombre;
     }

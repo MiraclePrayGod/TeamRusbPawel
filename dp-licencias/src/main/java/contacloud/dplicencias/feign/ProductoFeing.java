@@ -9,14 +9,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.List;
+
 @FeignClient(name = "ms-producto-service", path = "/productos")
 public interface ProductoFeing {
 
 //    @GetMapping("/{id}")
 //    ResponseEntity<ProductoDto> obtenerPorId(@PathVariable Long id);
-    @GetMapping("/{id}")
+
+
+    @GetMapping("/get/{id}")
     @CircuitBreaker(name = "productoId" , fallbackMethod = "fallBackProductoById")
-    ResponseEntity<ProductoDto> obtenerProductoPorId(@PathVariable Long id);
+    ResponseEntity<List<ProductoDto>> obtenerByID(@PathVariable Long id);
 
    default ResponseEntity<ProductoDto> fallBackProductoById( Long id, Throwable e){
         ProductoDto productoDto = new ProductoDto();

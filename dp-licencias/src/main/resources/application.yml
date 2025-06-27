@@ -27,12 +27,4 @@ management:
     health:
       show-details: always
 
-feign:
-  client:
-    config:
-      microservicio-productos:
-        ribbon:
-          listOfServers: eureka://microservicio-productos
-      microservicio-movimientos:
-        ribbon:
-          listOfServers: eureka://microservicio-movimientos
+

@@ -8,20 +8,21 @@ public class ClienteDto {
     private String apellidos;
     private String correo;
     private String numeroDocumento;
-    private String estado;
+    private Boolean estado;
+    private Boolean licenciaActiva;
     private LocalDateTime fechaRegistro;
 
     public ClienteDto() {
     }
 
-
-    public ClienteDto(Long id, String nombres, String apellidos, String correo, String numeroDocumento, String estado, LocalDateTime fechaRegistro) {
+    public ClienteDto(Long id, String nombres, String apellidos, String correo, String numeroDocumento, Boolean estado,Boolean licenciaActiva, LocalDateTime fechaRegistro) {
         this.id = id;
         this.nombres = nombres;
         this.apellidos = apellidos;
         this.correo = correo;
         this.numeroDocumento = numeroDocumento;
         this.estado = estado;
+        this.licenciaActiva = licenciaActiva;
         this.fechaRegistro = fechaRegistro;
     }
 
@@ -65,12 +66,20 @@ public class ClienteDto {
         this.numeroDocumento = numeroDocumento;
     }
 
-    public String getEstado() {
+    public Boolean getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(Boolean estado) {
         this.estado = estado;
+    }
+
+    public Boolean getLicenciaActiva() {
+        return licenciaActiva;
+    }
+
+    public void setLicenciaActiva(Boolean licenciaActiva) {
+        this.licenciaActiva = licenciaActiva;
     }
 
     public LocalDateTime getFechaRegistro() {

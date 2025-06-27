@@ -13,6 +13,7 @@ import java.util.List;
 
 @FeignClient(name = "ms-venta-service", path = "/ventas")
 public interface VentaFeing {
+
         @GetMapping("/{id}")
         ResponseEntity<VentaDto> obtenerPorId(@PathVariable Integer id);
 
@@ -22,7 +23,6 @@ public interface VentaFeing {
         @GetMapping("/clientes/{id}")
         ResponseEntity<List<VentaDto>> obtenerByCliente(@PathVariable Integer id);
 
-    @PutMapping("/{id}")
-        ResponseEntity<VentaDto> actualizarVenta(@PathVariable Long id, @RequestBody ClienteDto cursoDto);
+
 
 }

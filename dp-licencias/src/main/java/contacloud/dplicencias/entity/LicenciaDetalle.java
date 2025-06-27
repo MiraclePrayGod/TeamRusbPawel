@@ -6,6 +6,8 @@ import contacloud.dplicencias.dto.VentaDto;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.List;
+
 
 @Data
 @Entity
@@ -20,7 +22,7 @@ public class LicenciaDetalle {
     @Transient
     private VentaDto ventaDto;
     @Transient
-    private ProductoDto productoDto;
+    private List<ProductoDto> productoDto;
 
 
     public LicenciaDetalle() {
@@ -32,14 +34,14 @@ public class LicenciaDetalle {
                            String codigoLicencia,
                            String contrasena,
                            VentaDto ventaDto,
-                           ProductoDto productoDto) {
+                           List<ProductoDto>  productoDto) {
         this.detalleId = detalleId;
         this.ventaId = ventaId;
         this.productoId = productoId;
         this.codigoLicencia = codigoLicencia;
         this.contrasena = contrasena;
         this.ventaDto = ventaDto;
-        this.productoDto = productoDto;
+        this.productoDto = productoDto ;
     }
 
     public Integer getDetalleId() {
@@ -90,11 +92,11 @@ public class LicenciaDetalle {
         this.ventaDto = ventaDto;
     }
 
-    public ProductoDto getProductoDto() {
+    public  List<ProductoDto> getProductoDto() {
         return productoDto;
     }
 
-    public void setProductoDto(ProductoDto productoDto) {
+    public void setProductoDto( List<ProductoDto> productoDto) {
         this.productoDto = productoDto;
     }
 }

@@ -6,12 +6,12 @@ import contacloud.dplicencias.entity.LicenciaDetalle;
 import contacloud.dplicencias.feign.ClienteFeing;
 import contacloud.dplicencias.feign.ProductoFeing;
 import contacloud.dplicencias.feign.VentaFeing;
+import contacloud.dplicencias.repository.LicenciaDetalleRepository;
 import contacloud.dplicencias.repository.LicenciaRepository;
 import contacloud.dplicencias.service.LicenciaService;
 import contacloud.dplicencias.util.StringUtils;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -20,19 +20,20 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
-import java.security.SecureRandom;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class LicenciaSeriveImpl implements LicenciaService {
 
     @Autowired
     private LicenciaRepository licenciaRepository;
+
+    @Autowired
+    private LicenciaDetalleRepository licenciaDetalleRepository;
 
     @Autowired
     private ClienteFeing clienteFeing;
@@ -49,32 +50,49 @@ public class LicenciaSeriveImpl implements LicenciaService {
     @Autowired
     private JavaMailSenderImpl mailSender;
 
-
-
-    // Método listar sin CircuitBreaker
     @Override
     public List<Licencia> listar() {
         List<Licencia> licencias = licenciaRepository.findAll();
+
         for (Licencia licencia : licencias) {
             ClienteDto clienteDto = clienteFeing.obtenerPorId(licencia.getClienteId()).getBody();
             licencia.setClienteDto(clienteDto);
-            for (LicenciaDetalle detalle: licencia.getDetalles()) {
-                VentaDto ventaDto = ventaFeing.obtenerPorId(detalle.getVentaId()).getBody();
-                ProductoDto productoDto = productoFeing.obtenerProductoPorId(detalle.getProductoId()).getBody();
-                if (ventaDto == null ) {
-                    throw new DataIntegrityViolationException("Venta con ese id "+ ventaDto.getId()+" no existe ");
-                }else {
-                    detalle.setVentaDto(ventaDto);
+
+            for (LicenciaDetalle detalle : licencia.getDetalles()) {
+                List<VentaDto> venta = ventaFeing.obtenerByCliente(clienteDto.getId().intValue()).getBody();
+
+                // Lista para almacenar todos los productos
+                List<ProductoDto> productoDto = new ArrayList<>();
+                for (VentaDto ventas : venta) {
+                    for (VentaDetalleDto detalleVenta : ventas.getDetalles()) {
+                        if (detalle.getVentaId() == detalleVenta.getId()) {
+                            // Obtener la lista de productos asociados a este detalle
+                            System.out.println("Id del detalle id"+detalleVenta.getId());
+                            List<ProductoDto> productoDtoList = productoFeing.obtenerByID(detalleVenta.getProductoId()).getBody();
+                          ProductoDto productoDto1=  productoDtoList.get(0);
+                            // Añadir todos los productos a la lista
+                            productoDto.add(productoDto1);
+                            System.out.println("Producto del obtenerById"+productoDto1);
+
+                        }
+                    }
+                    detalle.setVentaDto(ventas);
                 }
-                if (productoDto == null){
-                    throw new DataIntegrityViolationException("Producto con ese id "+ productoDto.getId()+" no existe ");
-                }else {
-                    detalle.setProductoDto(productoDto);
-                }
+                System.out.println(productoDto);
+                detalle.setProductoDto(productoDto);
             }
         }
+
         return licencias;
     }
+
+
+
+
+
+
+
+
 
     // Método buscar sin CircuitBreaker
     @Override
@@ -86,9 +104,11 @@ public class LicenciaSeriveImpl implements LicenciaService {
             licencia.setClienteDto(clienteDto);
             for (LicenciaDetalle detalle: licencia.getDetalles()) {
                 VentaDto ventaDto = ventaFeing.obtenerPorId(detalle.getVentaId()).getBody();
-                ProductoDto productoDto =  productoFeing.obtenerProductoPorId(detalle.getProductoId()).getBody();
+//                ProductoDto productoDto =  productoFeing.obtenerProductoPorId(detalle.getProductoId()).getBody();
+                List<ProductoDto> prodlist= new ArrayList<>();
+//                prodlist.add(productoDto);
                 detalle.setVentaDto(ventaDto);
-                detalle.setProductoDto(productoDto);
+//                detalle.setProductoDto(prodlist);
             }
         });
 
@@ -98,8 +118,7 @@ public class LicenciaSeriveImpl implements LicenciaService {
     // Método guardar sin CircuitBreaker
     @Override
     public Licencia guardar(Licencia licencia) {
-
-        ClienteDto cliente = null;
+        ClienteDto cliente;
         try {
             // Intentamos obtener el cliente
             cliente = clienteFeing.obtenerPorId(licencia.getClienteId()).getBody();
@@ -129,7 +148,7 @@ public class LicenciaSeriveImpl implements LicenciaService {
 
         List<VentaDto> ventaDto = null;
         try {
-            ventaDto = ventaFeing.pagadas(cliente.getId().intValue()).getBody();
+            ventaDto = ventaFeing.obtenerByCliente(cliente.getId().intValue()).getBody();
             if (ventaDto == null || ventaDto.isEmpty()) {
                 throw new RuntimeException("No se encontraron ventas para el cliente con ID: " + cliente.getId());
             }
@@ -142,29 +161,37 @@ public class LicenciaSeriveImpl implements LicenciaService {
         List<LicenciaDetalle> detallesLicencia = new ArrayList<>();
         for (VentaDto ventaDto1: ventaDto) {
             for ( VentaDetalleDto detalleDto : ventaDto1.getDetalles()) {
-                ProductoDto productoDto = productoFeing.obtenerProductoPorId(detalleDto.getProductoId()).getBody();
-                if (productoDto == null) {
-                    throw new RuntimeException("Producto no encontrado con ID: " + detalleDto.getProductoId());
-                }
+//                ProductoDto productoDto = productoFeing.obtenerProductoPorId(detalleDto.getProductoId()).getBody();
+                List<ProductoDto> prodlist= new ArrayList<>();
+//                prodlist.add(productoDto);
+//                if (productoDto == null) {
+//                    throw new RuntimeException("Producto no encontrado con ID: " + detalleDto.getProductoId());
+//                }
 
                 LicenciaDetalle detalle = new LicenciaDetalle();
+                if (ventaDto1.getEstado().equals("PAGADA")) {
+                    detalle.setVentaId(ventaDto1.getId());
+                    detalle.setProductoId(detalleDto.getId().longValue());
+                    detalle.setCodigoLicencia(StringUtils.generarCodigoLicencia(cliente.getNombres()));
+                    detalle.setContrasena(StringUtils.generarContrasena(cliente.getNombres()));
+                    detalle.setVentaDto(ventaDto1);
+//                    detalle.setProductoDto(prodlist);
 
-                detalle.setVentaId(ventaDto1.getId());
-                detalle.setProductoId(detalleDto.getId().longValue());
-                detalle.setCodigoLicencia(StringUtils.generarCodigoLicencia(cliente.getNombres()));
-                detalle.setContrasena(StringUtils.generarContrasena(cliente.getNombres()));
-                detalle.setVentaDto(ventaDto1);
-                detalle.setProductoDto(productoDto);
+                }else {
+                    throw new RuntimeException("Venta con el id "+ ventaDto1.getId()+ " aun no completo su pago ");
+                }
+
                 // Agregar el detalle a la lista
                 detallesLicencia.add(detalle);
-            }
+                licencia.setDetalles(detallesLicencia);
 
+            }
 
         }
 
-        licencia.setDetalles(detallesLicencia);
         Licencia nuevaLicencia = licenciaRepository.save(licencia);
         sendEmail(licencia.getClienteId().intValue());
+        clienteFeing.actualizarEstado(licencia.getClienteId(),true);
         return nuevaLicencia;
     }
 
@@ -172,27 +199,16 @@ public class LicenciaSeriveImpl implements LicenciaService {
     public Licencia actualizar(Integer id, Licencia licencia) {
         Licencia licenciaExistente = licenciaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Licencia no encontrada con ID: " + id));
-        return licenciaRepository.save(licencia);
+        return licenciaRepository.save(licenciaExistente);
     }
 
     @Override
     public void eliminar(Integer id) {
-        Licencia licencia = licenciaRepository.getById(id);
-        List<VentaDto> ventaDto = ventaFeing.obtenerByCliente(licencia.getClienteId().intValue()).getBody();
-        if (ventaDto.isEmpty()) {
-            throw new DataIntegrityViolationException("No se encontraron ventas con ese el id " + id + " del cliente");
-        }
-        ClienteDto clienteDto = null;
-        for (VentaDto venta : ventaDto) {
-            clienteDto = clienteFeing.obtenerPorId(licencia.getClienteId().longValue()).getBody();
-
-            for (VentaDetalleDto detalle : venta.getDetalles()) {
-                ProductoDto productoDto = productoFeing.obtenerProductoPorId(detalle.getProductoId()).getBody();
-                detalle.setProductoId(productoDto.getId());
-            }
-        }
-        if (clienteDto.getEstado().equals("HABILITADO")) {
-            clienteDto.setEstado("INHABILITADO");
+        Optional<Licencia> licencias = licenciaRepository.findById(id);
+       Licencia licenciaExistente = licencias.get();
+        ClienteDto clienteDto = clienteFeing.obtenerPorId(licenciaExistente.getClienteId()).getBody();
+        if (clienteDto.getEstado().equals(false)) {
+            clienteFeing.actualizarEstado(clienteDto.getId(),true);
         }
         licenciaRepository.deleteById(id);
     }
@@ -260,17 +276,19 @@ public class LicenciaSeriveImpl implements LicenciaService {
             licencia.setClienteDto(clienteDto);
             for (LicenciaDetalle detalle: licencia.getDetalles()) {
                 VentaDto ventaDto = ventaFeing.obtenerPorId(detalle.getVentaId()).getBody();
-                ProductoDto productoDto = productoFeing.obtenerProductoPorId(detalle.getProductoId()).getBody();
+//                ProductoDto productoDto = productoFeing.obtenerProductoPorId(detalle.getProductoId()).getBody();
+                List<ProductoDto> prodtolist = new ArrayList<>();
+//                prodtolist.add(productoDto);
                 if (ventaDto == null ) {
-                    throw new DataIntegrityViolationException("Venta con ese id "+ ventaDto.getId()+" no existe ");
+                    throw new DataIntegrityViolationException("Venta con ese id "+ detalle.getVentaId()+" no existe ");
                 }else {
                     detalle.setVentaDto(ventaDto);
                 }
-                if (productoDto == null){
-                    throw new DataIntegrityViolationException("Producto con ese id "+ productoDto.getId()+" no existe ");
-                }else {
-                    detalle.setProductoDto(productoDto);
-                }
+//                if (productoDto == null){
+//                    throw new DataIntegrityViolationException("Producto con ese id "+ detalle.getProductoId()+" no existe ");
+//                }else {
+////                    detalle.setProductoDto(prodtolist);
+//                }
             }
         }
         return licencias;
@@ -288,7 +306,7 @@ public class LicenciaSeriveImpl implements LicenciaService {
 
     @Override
     public Licencia licenciaExpirada(Integer id) {
-        Licencia licencia = licenciaRepository.getById(id);
+        Licencia licencia = licenciaRepository.findById(id).get();
         if (licencia.getFechaExpiracion().isEqual(LocalDate.now())) {
             licencia.setEstado(false);
         }

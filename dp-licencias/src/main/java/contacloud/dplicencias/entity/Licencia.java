@@ -1,6 +1,7 @@
 package contacloud.dplicencias.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import contacloud.dplicencias.dto.ClienteDto;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Data
 @Entity
+@Table(name = "licencia")
 public class Licencia {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,9 +23,10 @@ public class Licencia {
     private Boolean estado;
     @Transient
     private ClienteDto clienteDto;
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name = "licencia_id")
     private List<LicenciaDetalle> detalles;
-
     public Licencia() {
     }
 

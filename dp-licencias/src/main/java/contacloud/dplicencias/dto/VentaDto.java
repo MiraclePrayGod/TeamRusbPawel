@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public class VentaDto {
-    private int id;
+    private Integer id;
     private String clienteId;
     private LocalDate fechaVenta;
     private String estado;
@@ -14,7 +14,7 @@ public class VentaDto {
     public VentaDto() {
     }
 
-    public VentaDto(int id, String clienteId, LocalDate fechaVenta, String estado, List<VentaDetalleDto> detalles) {
+    public VentaDto(Integer id, String clienteId, LocalDate fechaVenta, String estado, List<VentaDetalleDto> detalles) {
         this.id = id;
         this.clienteId = clienteId;
         this.fechaVenta = fechaVenta;
@@ -22,11 +22,11 @@ public class VentaDto {
         this.detalles=detalles;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
