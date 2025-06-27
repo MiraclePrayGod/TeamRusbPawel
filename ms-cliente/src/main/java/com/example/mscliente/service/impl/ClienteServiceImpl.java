@@ -82,15 +82,11 @@ public class ClienteServiceImpl implements ClienteService {
 
 
     @Override
-    public Cliente habilitarCliente(Long id) {
-
-        Optional<Cliente> cliente = clienteRepository.findById(id);
-        if (cliente.isPresent()){
-            Cliente cliente1 = cliente.get();
-            cliente1.setEstado("HABILITADO");
-            clienteRepository.save(cliente1);
-            return cliente1;
-
+    public void habilitarCliente(Long id, Boolean licenciaActiva) {
+        Cliente cliente = clienteRepository.findById(id).get();
+        if (cliente != null){
+            cliente.setEstado(licenciaActiva);
+            clienteRepository.save(cliente);
         }else{
             throw new IllegalArgumentException("El cliente con id " + id + " no ha sido encontrado");
         }

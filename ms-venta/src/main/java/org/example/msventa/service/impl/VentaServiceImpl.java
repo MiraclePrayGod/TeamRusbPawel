@@ -64,20 +64,24 @@ public class VentaServiceImpl implements VentaService {
     @Override
     public List<Venta> pagadas(Integer clienteId) {
         return ventaRepository.findByClienteIdAndEstado(clienteId, "PAGADA");
+
     }
 
 
     @Override
-    public Optional<Venta> obtenerByCliente(Integer id) {
-        Optional<Venta> venta = ventaRepository.getByClienteId(id);
-        if (venta.isEmpty()) {
+    public List<Venta> obtenerByCliente(Integer id) {
+//        List<Venta> venta = new ArrayList<>();
+        List<Venta> ventas = ventaRepository.getByClienteId(id);
+        if (ventas.isEmpty()) {
             throw new DataIntegrityViolationException("No se encontraron ventas con ese el id "+id +" del cliente");
         }
-        for (VentaDetalle detalle : venta.get().getDetalles()) {
-            Producto productoDto = productoFeign.obtenerPorId(detalle.getProductoId()).getBody();
-            detalle.setProducto(productoDto);
+        for (Venta venta : ventas) {
+            for (VentaDetalle detalle : venta.getDetalles()) {
+                Producto productoDto = productoFeign.obtenerPorId(detalle.getProductoId()).getBody();
+                detalle.setProducto(productoDto);
+            }
         }
-        return Optional.ofNullable(venta.get());
+        return ventas;
     }
 
 
@@ -88,13 +92,6 @@ public class VentaServiceImpl implements VentaService {
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada o ya pagada"));
         v.setEstado("PAGADA");
         ventaRepository.save(v);
-
-        try {
-            clienteFeign.actualizarEstado(v.getClienteId().longValue());
-        } catch (Exception e) {
-            // Manejo de excepciones (registro, alertas, etc.)
-            log.error("Error al actualizar el estado del cliente: ", e);
-        }
 
     }
 

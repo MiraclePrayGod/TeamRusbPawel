@@ -66,12 +66,13 @@
             return productoRepository.existsByNombre(nombre);
         }
 
-//        @Override
-//        public Optional<List<Producto>> obtenerByCliente(Integer id) {
-//            List<Producto> venta = productoRepository.getBy getByClienteId((id));
-//            if (venta.isEmpty() || venta == null) {
-//                throw new DataIntegrityViolationException("No se encontraron ventas con ese el id "+id +" del cliente");
-//            }
-//            return Optional.ofNullable(venta);        }
+        @Override
+        public List<Producto>obtenerByID(Long id) {
+            List<Producto> producto = productoRepository.getProductosById(id);
+            if (producto.isEmpty() || producto == null) {
+                throw new DataIntegrityViolationException("No se encontraron productos con ese el id "+id +" del producto.");
+            }
+            return productoRepository.getProductosById(id);
+        }
 
     }

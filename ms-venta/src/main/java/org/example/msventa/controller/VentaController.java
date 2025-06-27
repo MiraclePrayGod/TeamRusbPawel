@@ -4,7 +4,6 @@ import org.example.msventa.entity.Venta;
 import org.example.msventa.service.VentaService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +32,8 @@ public class VentaController {
     public ResponseEntity<List<Venta>> listar() {
         return ResponseEntity.ok(ventaService.listar());
     }
+
+
     @GetMapping("/pagadas/{clienteId}")
     public ResponseEntity<List<Venta>> pagadas(@PathVariable Integer clienteId) {
         return ResponseEntity.ok(ventaService.pagadas(clienteId));
@@ -85,8 +86,7 @@ public class VentaController {
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/clientes/{id}")
-    public ResponseEntity<Venta> obtenerByCliente(@PathVariable Integer id) {
-        Optional<Venta> ventas = ventaService.obtenerByCliente(id);
-        return ventas.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<List<Venta>> obtenerByCliente(@PathVariable Integer id) {
+       return ResponseEntity.ok(ventaService.obtenerByCliente(id));
     }
 }

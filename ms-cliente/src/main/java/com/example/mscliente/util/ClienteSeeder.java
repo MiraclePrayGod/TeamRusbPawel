@@ -20,9 +20,9 @@ public class ClienteSeeder implements CommandLineRunner {
     public void run(String... args) {
         if (clienteRepository.count() == 0) {
             Cliente c1 = new Cliente(null, "Juan", "Perez", "DNI", "12345678",
-                    "juan@gmail.com", "987654321", "Lima, Perú", "Inhabilitado", LocalDateTime.now());
+                    "juan@gmail.com", "987654321", "Lima, Perú", false,false, LocalDateTime.now());
             Cliente c2 = new Cliente(null, "Empresa SAC", "", "RUC", "20123456789",
-                    "ventas@empresa.com", "012345678", "Av. Industrial 123", "Inhabilitado", LocalDateTime.now());
+                    "ventas@empresa.com", "012345678", "Av. Industrial 123", false, false, LocalDateTime.now());
             clienteRepository.save(c1);
             clienteRepository.save(c2);
         }

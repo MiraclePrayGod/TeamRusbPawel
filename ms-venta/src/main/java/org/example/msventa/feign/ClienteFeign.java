@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(name = "ms-cliente-service", path = "/clientes")
 public interface ClienteFeign {
@@ -13,5 +14,5 @@ public interface ClienteFeign {
     ResponseEntity<Cliente> obtenerPorId(@PathVariable Integer id);
 
     @PutMapping("/habilitar/{clienteId}")
-    ResponseEntity<Void> actualizarEstado(@PathVariable Long clienteId);
+    ResponseEntity<Void> actualizarEstado(@PathVariable Long clienteId, @RequestBody Boolean licenciaActiva);
 }

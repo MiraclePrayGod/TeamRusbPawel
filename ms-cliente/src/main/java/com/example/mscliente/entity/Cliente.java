@@ -17,13 +17,24 @@ public class Cliente {
     private String correo;
     private String telefono;
     private String direccion;
-    private String estado;
+    private Boolean estado;
+    private Boolean licenciaActiva;
     private LocalDateTime fechaRegistro;
 
-    public Cliente() {}
+    public Cliente() {
+    }
 
-    public Cliente(Long id, String nombres, String apellidos, String tipoDocumento, String numeroDocumento,
-                   String correo, String telefono, String direccion, String estado, LocalDateTime fechaRegistro) {
+    public Cliente(Long id,
+                   String nombres,
+                   String apellidos,
+                   String tipoDocumento,
+                   String numeroDocumento,
+                   String correo,
+                   String telefono,
+                   String direccion,
+                   Boolean estado,
+                   Boolean licenciaActiva,
+                   LocalDateTime fechaRegistro) {
         this.id = id;
         this.nombres = nombres;
         this.apellidos = apellidos;
@@ -33,6 +44,7 @@ public class Cliente {
         this.telefono = telefono;
         this.direccion = direccion;
         this.estado = estado;
+        this.licenciaActiva = licenciaActiva;
         this.fechaRegistro = fechaRegistro;
     }
 
@@ -100,12 +112,20 @@ public class Cliente {
         this.direccion = direccion;
     }
 
-    public String getEstado() {
+    public Boolean getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(Boolean estado) {
         this.estado = estado;
+    }
+
+    public Boolean getLicenciaActiva() {
+        return licenciaActiva;
+    }
+
+    public void setLicenciaActiva(Boolean licenciaActiva) {
+        this.licenciaActiva = licenciaActiva;
     }
 
     public LocalDateTime getFechaRegistro() {

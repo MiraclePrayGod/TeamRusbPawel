@@ -7,7 +7,29 @@ public class Cliente {
     private String tipoDocumento;
     private String numeroDocumento;
     private String correo;
-    private String estado;
+    private Boolean estado;
+    private Boolean licenciaActiva;
+
+    public Cliente() {
+    }
+
+    public Cliente(Integer id,
+                   String nombres,
+                   String apellidos,
+                   String tipoDocumento,
+                   String numeroDocumento,
+                   String correo,
+                   Boolean estado,
+                   Boolean licenciaActiva) {
+        this.id = id;
+        this.nombres = nombres;
+        this.apellidos = apellidos;
+        this.tipoDocumento = tipoDocumento;
+        this.numeroDocumento = numeroDocumento;
+        this.correo = correo;
+        this.estado = estado;
+        this.licenciaActiva = licenciaActiva;
+    }
 
     public Integer getId() {
         return id;
@@ -57,11 +79,19 @@ public class Cliente {
         this.correo = correo;
     }
 
-    public String getEstado() {
+    public Boolean getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(Boolean estado) {
         this.estado = estado;
+    }
+
+    public Boolean getLicenciaActiva() {
+        return licenciaActiva;
+    }
+
+    public void setLicenciaActiva(Boolean licenciaActiva) {
+        this.licenciaActiva = licenciaActiva;
     }
 }

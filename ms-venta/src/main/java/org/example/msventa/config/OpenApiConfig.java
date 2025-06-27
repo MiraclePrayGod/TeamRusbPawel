@@ -1,4 +1,4 @@
-package com.example.msventa.config;
+package org.example.msventa.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;

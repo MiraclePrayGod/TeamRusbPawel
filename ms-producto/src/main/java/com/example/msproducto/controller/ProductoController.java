@@ -47,4 +47,9 @@ public class ProductoController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/get/{id}")
+    public ResponseEntity<List<Producto>> obtenerByID(@PathVariable Long id) {
+        return new ResponseEntity<>(productoService.obtenerByID(id), HttpStatus.OK);
+    }
+
 }
