@@ -1,13 +1,13 @@
-package com.example.msreporte.controller;
+package contacloud.msreportes.controller;
 
-import com.example.msreporte.service.ReporteService;
+import contacloud.msreportes.service.ReporteService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/reporte")
+@RequestMapping("/reportes")
 public class ReporteController {
 
     private final ReporteService reporteService;

@@ -1,10 +1,10 @@
-package contacloud.msreporte;
+package contacloud.msreportes;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class MsReporteApplicationTests {
+class MsReportesApplicationTests {
 
     @Test
     void contextLoads() {

@@ -56,9 +56,9 @@ spring:
           uri: lb://dp-licencias
           predicates:
             - Path=/licencias/**
-        - id: ms-reporte
-          uri: lb://ms-reporte
+        - id: ms-reportes
+          uri: lb://ms-reportes
           predicates:
-            - Path=/reporte/**
+            - Path=/reportes/**
 
 

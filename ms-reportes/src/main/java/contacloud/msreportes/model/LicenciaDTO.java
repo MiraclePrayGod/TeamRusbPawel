@@ -1,4 +1,4 @@
-package com.example.msreporte.model;
+package contacloud.msreportes.model;
 
 public class LicenciaDTO {
     private Long id;

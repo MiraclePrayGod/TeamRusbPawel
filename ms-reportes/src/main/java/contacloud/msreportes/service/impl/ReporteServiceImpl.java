@@ -1,8 +1,16 @@
-package com.example.msreporte.service.impl;
+package contacloud.msreportes.service.impl;
 
-import com.example.msreporte.feign.*;
-import com.example.msreporte.model.*;
-import com.example.msreporte.service.ReporteService;
+import com.example.msreportes.feign.*;
+import com.example.msreportes.model.*;
+import contacloud.msreportes.feign.LicenciaFeign;
+import contacloud.msreportes.feign.PagoFeign;
+import contacloud.msreportes.feign.ProductoFeign;
+import contacloud.msreportes.feign.VentaFeign;
+import contacloud.msreportes.model.LicenciaDTO;
+import contacloud.msreportes.model.PagoDTO;
+import contacloud.msreportes.model.ProductoDTO;
+import contacloud.msreportes.model.VentaDTO;
+import contacloud.msreportes.service.ReporteService;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
