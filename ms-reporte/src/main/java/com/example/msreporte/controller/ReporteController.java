@@ -2,10 +2,12 @@ package com.example.msreporte.controller;
 
 import com.example.msreporte.service.ReporteService;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("/reporte")
 public class ReporteController {
 
     private final ReporteService reporteService;
@@ -14,10 +16,15 @@ public class ReporteController {
         this.reporteService = reporteService;
     }
 
-    @GetMapping("/reporte/excel")
-    public void exportarExcel(HttpServletResponse response) throws Exception {
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; filename=reporte.xlsx");
-        reporteService.exportarExcel(response.getOutputStream());
+    @GetMapping("/excel")
+    public ResponseEntity<Void> exportarExcel(HttpServletResponse response) {
+        try {
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader("Content-Disposition", "attachment; filename=reporte.xlsx");
+            reporteService.exportarExcel(response.getOutputStream());
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
